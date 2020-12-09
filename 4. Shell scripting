@@ -1,0 +1,9 @@
+#	3. Create a shell script that will tell you all the files that are currently opened on the machine 
+#	and it will give the output in the following format:
+#   command0 || file0
+#   command0 || file1
+#   command0 || file2
+#   command1 || file0
+
+#!/bin/sh
+lsof | awk '{ printf "%-1s || %-10s\n", $1, $9 }'

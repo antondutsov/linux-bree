@@ -1,0 +1,57 @@
+3. Write a RedHat based configuration file(s) that will create a bridge device from eth0 and eth1.
+
+#First we create bridge file in:
+#
+#/etc/sysconfig/network-scripts\
+#name it 
+#	ifcfg-br0
+
+DEVICE=br0
+TYPE=Bridge
+IPADDR=10.10.15.1
+NETMASK=255.255.255.0
+ONBOOT=yes
+BOOTPROTO=static
+NM_CONTROLLED=no
+DELAY=0
+
+#Then we create (modify) eth0 config file in:
+#
+#/etc/sysconfig/network-scripts\
+#name it 
+#	ifcfg-eth0
+
+DEVICE=eth0
+TYPE=Ethernet
+HWADDR=AA:BB:CC:DD:EE:FF  #MAC from ifconfig eth0
+BOOTPROTO=none
+ONBOOT=yes
+NM_CONTROLLED=no
+BRIDGE=br0
+
+#And Last file we create(modify) in:
+#
+#/etc/sysconfig/network-scripts\
+#name it
+#	ifcfg-eth1
+
+DEVICE=eth1
+TYPE=Ethernet
+HWADDR=AA:BB:CC:DD:EE:FF  #MAC from ifconfig eth1
+BOOTPROTO=none
+ONBOOT=yes
+NM_CONTROLLED=no
+BRIDGE=br0
+
+#to check our bridge creation we run:
+#
+#	service network restart
+#
+#if everithing is a OK (green) we run
+#
+#	brctl show
+#
+#to see our bridge conection between eht0 and eth1
+
+Sourse 
+https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-networkscripts-interfaces_network-bridge.html

@@ -1,0 +1,47 @@
+5. Describe what is stored in /var/run & /var/lock and how the two dir's are actually used on most Linux distros.
+
+The /var Directory is a standard subdirectory of the root directory in Linux and other Unix-like operating systems 
+that contains files to which the system writes data during the course of its operation.
+
+The /var is specific for each computer, that is, it is not shared over a network with other computers.
+Among the various subdirectories within /var,
+/var/lock - contains lock files created by programs to indicate that they are using a particular file or device. 
+/var/run - contains PIDs and other system information that is valid until the system is booted again.
+
+	
+	Ubuntu:
+Ubuntu 11.10 has migrated away from /var/run, /var/lock and /dev/shm and now uses /run, /run/lock and /run/shm 
+instead (respectively).
+The intent is to reduce the number of tmpfs file systems. On 11.04, there are separate tmpfs file systems 
+at /var/lock, /var/run and /dev/shm. If these directories were all under a single parent directory, 
+then only a single tmpfs would be needed. It also provides an obvious location for further runtime state data that 
+shouldn't persist over reboots.
+
+	Fedora:
+Fedora 15 has a /run directory for storing runtime data. /run is now a tmpfs, and 
+/var/run is bind mounted to it. 
+/var/lock is bind mounted to /run/lock.
+Applications can use /run the same way as /var/run.
+
+Modern Linux distributions include a /run directory as a temporary filesystem (tmpfs) which stores volatile runtime
+data, and which is being considered for the next version - v.3.0 of the File Hierarchy Standard.
+/run replaces several existing locations described in the FHS:
+	
+	Detailed example from Debian:
+
+/dev/.* → /run/* 
+/dev/shm → /run/shm [currently only Debian plans to do this]
+/dev/shm/* → /run/* 
+/etc/* (writeable files) → /run/* 
+/lib/init/rw → /run 
+/var/lock → /run/lock 
+/var/run → /run 
+/tmp → /run/tmp [currently only Debian plans to do this]
+
+
+Source – Internet:
+www.google.com/ 
+www.en.wikipedia.org/ 
+www.askubuntu.com/ 
+www.docs.fedoraproject.org/
+www.tldp.org

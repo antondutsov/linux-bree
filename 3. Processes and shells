@@ -1,0 +1,126 @@
+						4. Describe the SELinux security model.
+
+	NSA Security-Enhanced Linux (SELinux) is an implementation of a flexible Mandatory Access Control (MAC) 
+architecture in the Linux operating system.  The SELinux architecture provides general support for the 
+enforcement of many kinds of mandatory access control  policies, including those based on the concepts of 
+Type Enforcement (TE), User-Based Access Control (UBAC), Role-Based Access Control (RBAC), and Multi-Level 
+Security (MLS).
+
+	SELinux User Identities 
+The SELinux User Identity attribute is the first attribute in the Security context. This attribute is used to
+assign SELinux Roles and Security Level ranges, or Security Category ranges to Linux User Identities. 
+SELinux User Identities are independent of the Linux User Identities. Constraints in the security policy 
+define whether SELinux User Identities can be changed.
+
+	Role-Based Access Control 
+The Role-based Access Control attribute is the second attribute in the Security context. T
+his attribute is used to assign Security domains to SELinux User Identities. 
+Role-Based Access Control is only applicable to processes. 
+The SELinux Role attribute in Security contexts for objects is generic.
+
+	Type Enforcement (TE) 
+The Type Enforcement attribute is the third attribute in the Security context. 
+This attribute is used to assign types to processes and objects. 
+These types can be used to define how processes and objects can interact. 
+Type transitions define whether types for processes and objects can be changed. 
+
+	Multi Level Security 
+The Multi Level Security attribute is the fourth attribute in the Security context.
+This attribute is used to assign Security levels and Security compartments to processes and objects to enforce 
+confidentiality. Constraints in the security policy define how processes and files can interact. Processes are
+forced to operate on specified Security Levels, and in specified Security Compartments. 
+The Multi Level Security model enforces a "no read up and no write down" policy. Multi Level Security and 
+Multi Category Security are mutually exclusive. 
+
+	User-Based Access Control 
+The User-Based Access Control attribute is the first attribute in the Security context. User-Based Access Control 
+is an optional extension to the SELinux User Identity concept. This User-Based Access Control concept is used to
+achieve SELinux User Identity separation. Constraints in the security policy define how SELinux User Identities can
+interact with each others resources. 
+
+	Security context/label,
+is the mechanism used by SELinux to classify resources, such as processes and files, on a SELinux enabled system.
+This context allows SELinux to enforce rules for how and by whom a given resource should be accessed.
+
+  The security context is comprised of four fields:   user, role, type, and level.			
+	
+	User field 
+The first component of the security context is the "SELinux User" component. This component can be thought
+of as a way
+of grouping roles. Users that you will usually see on the system are "user_u", "system_u" and root.
+	
+	Role Field 
+The second component of the security context is the Role field. This field is only really relevant on processes 
+or domains. The role field on a file is always object_r, and really has no meaning other than as a place holder. 
+	
+	Type field 
+The third component of the security context is the Type component, for example /usr/sbin/httpd is labeled with a type
+of “httpd_exec_t". This is the heart of SELinux Type Enforcement. 
+Most of the policy rules in SELinux revolve around what subject types have what access to which object types.
+By convention this component always ends in a "_t".
+
+	Level field 
+The 4th component is the MLS, or Multi Level security. This field can contain a ":". Most files by default are
+labeled s0, sometimes referred to as SystemLow. On a targeted or strict policy machine s0 translates to "", 
+so almost all files will not even show the fourth field.
+ 
+	Boot process 
+When the SELinux kernel boots up it is hard coded to run as kernel_t. Since at this point there is no policy running,
+this is the only context. So since this is the only context, all applications that are run will stay in kernel_t. 
+When the kernel executes /sbin/init it is originally running as kernel_t, then it reads in the policy file and loads
+it into the kernel. At this point init re-execs itself. When /sbin/init is installed it is labeled init_exec_t and now 
+there is a rule in the kernel that says when kernel_t execs an application labeled init_exec_t, it should transition
+to init_t. So now the init process is running as init_t. The init process then runs /etc/rc.d/rc.sysinit,
+which is labeled initrc_exec_t. The kernel has a rule that says when init_t execs initrc_exec_t it transitions to
+initrc_t.
+
+	Login Process 		
+The login programs have SELinux awareness built into them. 
+Graphical Logins 
+gdm and xdm have SELinux awareness built into them, while login and ssh use the pam_selinux. 
+The way this works is the user authenticates to the system using whatever authorization mechanism is used. 
+The login programs call into SELinux functions to setup the default session. 		
+Next the SELinux Login calls a function which returns the default login context for this SELinux User. 
+Login program asks the kernel for the terminal type to assign to this user. 
+It takes this terminal type and sets it on the tty. 
+Next it tells the kernel the context to set on all execs from this process. At this point the login programs execs
+the shell and the user is logged in. When the user logs out the default exec context gets reset and the terminal 
+is reset back to the previous settings. 
+Most user applications and server applications are SELinux aware applications.
+Hundreds and thousands of packages in repositories are compiled with SELinux awareness in them. 
+This is one of the powerful features of SELinux in that applications do not need to be aware of SELinux.
+
+   Which applications need to be SELinux aware? 
+
+  Applications used to view or manipulate security contexts (Core Utilities) 
+Examples of this are the ls for viewing file context, ps for viewing process context. 
+
+	Programs required to set user session security context 
+The login programs are the most obvious programs for this login, sshd, gdm also cron 
+
+	The SELinux core programs. 
+These are used to control/manipulate security context. chcon, setfiles, restorecon Used to manipulate policy:
+load_policy, check_policy, check_module, semodule, semanage, setenforce, getenforce, setsebool, getsebool
+	
+	Access Control Decisions
+   SELinux uses security context labels to make access control decisions between processes and objects. 
+SELinux has hooks located at strategic points within the core kernel code, such as
+the point where a file is about to be read by a user. These hooks allow SELinux to break out of the normal flow
+of the kernel to request extended access control decisions. Access control decisions usually are made
+between a process (for example, cat) and an object (for example, /etc/shadow) for a specific permission
+(read).
+Decision requests are sent to the access vector cache (AVC), which passes requests through to the security
+server for interpretation. The security server consults the security policy database and determines a result,
+which is cached in the AVC and returned to the SELinux hook.
+The SELinux hook then allows the flow to continue or return EACCES, depending on the decision result. 
+Security context labels assigned to processes and objects are used to make these access control decisions.
+	
+	"Z" is your friend... 
+When I took over maintenance of the SELinux userspace I settled on to using "Z" as the universal option to show 
+security context. 
+So "ps auxZ" will show you the security context of all processes.
+"ls -Z" will show you the security context of files. 
+"id -Z" will show you the security context of your login shell. 
+So if you think an application might be SELinux aware try the -Z option... 
+
+    www.fedoralinux.org     www.nsa.gov/research/selinux      www.selinuxproject.org 

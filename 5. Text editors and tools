@@ -1,0 +1,16 @@
+2. With a single regular expression get all services 
+that have the string 'file' in their names from /etc/services and are runing only on UDP
+
+# Grep AND
+# There is no AND operator in grep. 
+# But, you can simulate AND using grep -E option.
+# ==exemple===
+# grep -E 'pattern1.*pattern2' filename
+# 'egrep' is exactly same as 'grep -E'. 
+# So, use 'egrep' (without any option) and 
+# separate multiple patterns for the or condition.
+
+egrep file.*udp /etc/services
+
+# Used examples from this link:
+# http://www.thegeekstuff.com/2011/10/grep-or-and-not-operators/

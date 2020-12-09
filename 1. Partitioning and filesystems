@@ -1,0 +1,77 @@
+17. Find all possible command line tools related to XFS administration (at least 5).
+
+	1. xfs_db - debug an XFS filesystem
+ xfs_db is used to examine an XFS filesystem. Under  rare  circumstances
+       it  can also be used to modify an XFS filesystem, but that task is nor‐
+       mally left to xfs_repair or to scripts such as xfs_admin that run
+       xfs_db.
+	
+	2. xfs_admin - change parameters of an XFS filesystem
+xfs_admin  uses the xfs_db command to modify various parameters of a
+       filesystem.
+       Devices that are  mounted  cannot  be  modified.   Administrators  must
+       unmount  filesystems  before xfs_admin or xfs_db can convert parame‐
+       ters.  A number of parameters of a mounted filesystem can  be  examined
+       and modified using the xfs_growfs command.
+
+	3. xfs_copy - copy the contents of an XFS filesystem
+xfs_copy  copies  an  XFS filesystem to one or more targets in parallel.
+       The first (source) argument must be the pathname of  the
+       device  or  file containing the XFS filesystem. The remaining arguments
+       specify one or more target devices or  file  names.  If  the  pathnames
+       specify devices, a copy of the source XFS filesystem is created on each
+       device. The target can also be the name of a  regular  file,  in  which
+       case  an image of the source XFS filesystem is created in that file. If
+       the file does not exist, xfs_copy creates the file. The length  of  the
+       resulting  file is equal to the size of the source filesystem. However,
+       if the file is created on an XFS filesystem, the file consumes  roughly
+       the  amount  of  space  actually  used  in the source filesystem by the
+       filesystem and the XFS log.  The space saving is because xfs_copy seeks
+       over  free  blocks  instead of copying them and the XFS filesystem sup‐
+       ports sparse files efficiently.
+	xfs_copy uses synchronous  writes  to  ensure  that  write  errors  are
+       detected.
+       	xfs_copy  uses  pthreads(7)  to  perform  simultaneous parallel writes.
+       xfs_copy creates one additional thread for each target to  be  written.
+       All threads die if xfs_copy terminates or aborts.
+
+	4. xfs_repair - repair an XFS filesystem
+ xfs_repair repairs corrupt or damaged  XFS  filesystems.
+       The  filesystem  is specified using the device argument which should be
+       the device name of the disk partition or volume containing the filesys‐
+       tem.  If  given  the name of a block device, xfs_repair will attempt to
+       find the raw device associated with the specified block device and will
+       use the raw device instead.
+       Regardless, the filesystem to be repaired must be unmounted, otherwise,
+       the resulting filesystem may be inconsistent or corrupt.
+
+	5. xfs_check - check XFS filesystem consistency
+xfs_check checks whether an XFS filesystem is consistent.  It  is  nor‐
+       mally  run only when there is reason to believe that the filesystem has
+       a consistency problem.  The filesystem to be checked  is  specified  by
+       the  device argument, which should be the disk or volume device for the
+       filesystem.  Filesystems stored in files can also be checked, using the
+       -f  flag. The filesystem should normally be unmounted or read-only dur‐
+       ing the execution  of  xfs_check.   Otherwise,  spurious  problems  are
+       reported.
+       Note  that using xfs_check is NOT recommended. Please use xfs_repair -n
+       instead, for better scalability and speed.
+
+	6. xfs_io - debug the I/O path of an XFS filesystem	
+xfs_io  is  a  debugging tool like xfs_db, but is aimed at examining
+       the regular file I/O paths rather  than  the  raw  XFS  volume  itself.
+       These  code  paths  include not only the obvious read/write/mmap inter‐
+       faces for manipulating files, but also cover all of the XFS  extensions
+       (such as space preallocation, additional inode flags, etc).
+
+	7. xfs_quota - manage use of quota on XFS filesystems
+xfs_quota is a utility for reporting and  editing  various  aspects  of
+       filesystem quota.
+
+	8. xfs_growfs, xfs_info - expand an XFS filesystem
+xfs_growfs expands an existing XFS filesystem .  The mount-
+       point argument is the pathname of the directory where the filesystem is
+       mounted. The filesystem must be mounted to  be  grown .
+       The  existing contents of the filesystem are undisturbed, and the added
+       space becomes available for additional file storage.
+       xfs_info is equivalent to invoking xfs_growfs with the -n  option.

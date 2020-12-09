@@ -1,0 +1,55 @@
+5. Describe the procedure for creating an RPM based repository.
+
+Creating a local yum repository from the OS installer disk(s) (CD/DVD) can be useful in many situations 
+where the machine doesn’t have Internet access to install additional packages. 
+While the installer disk can still be used after the initial OS installation, it is more convenient
+to use a local repository especially if more than one machine need access to the packages.
+This guide is for RHEL6.3 but it should work fairly well with other RHEL releases (e.g. RHEL 6.4), 
+clones (CentOS 6.4) and RHEL-like distributions (Fedora).
+
+step1: mount the OS disk and copy the contents to a local path which will be the main repository path:
+mkdir -p /mnt/cd /opt/yum/rhel6.3/repodata
+mount -o loop /dev/sr0 /mnt/cd
+cp -a /mnt/cd/Packages/*.rpm /opt/yum/rhel6.3
+ 
+step2: copy the main xml file from main repodata folder to the new repo path:
+cp /mnt/cd/repodata/*comps*.xml /opt/yum/rhel6.3/repodata/comps.xml
+Note: This is not necessarily needed, but it is useful if you want to use yum to query / install package 
+groups (e.g. yum grouplist).
+
+step3: generate local repository files
+cd /opt/yum/rhel6.3/
+createrepo -g repodata/comps.xml .
+Note: the createrepo RPM is available in the official RHEL/CentOS/Fedora repositories.
+ 
+step4.1: create new yum repository (e.g. rhel-local.repo)
+cat /etc/yum.repos.d/rhel-local.repo
+[rhel6.3-local]
+name=RHEL 6.3 local repository
+baseurl=file:///opt/yum/rhel6.3/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+enabled=1
+
+step4.2 (optional): store repository on a local FTP server
+copy /opt/yum/rhel6.3/ to the remote machine in its FTP path (e.g. /var/ftp/) and make sure FTP is reachable
+copy the RPM GPG key from /etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release to the remote FTP path (e.g. /var/ftp/rhel6.3)
+create the repository file on the local machine (e.g. rhel-ftp.repo)
+cat /etc/yum.repos.d/rhel-ftp.repo
+[rhel6.3-ftp]
+name=RHEL 6.3 FTP repository
+baseurl=ftp://192.168.0.100/rhel6.3/
+gpgcheck=1
+gpgkey=ftp://192.168.0.100/rhel6.3/RPM-GPG-KEY-redhat-release
+enabled=1
+
+step5: test the repository
+yum clean all
+yum repolist
+
+repo id                    repo name                                                                     status
+rhel6.3-ftp        RHEL 6.3 FTP repository                                                               3,653
+rhel6.3-local      RHEL 6.3 local repository                                                             3,653
+	
+That’s it, both the local and the FTP yum repositories are now fully functional.
+Source: http://linuxsysconfig.com/2013/03/create-a-rhelcentos-local-yum-repo-from-the-os-disk/
